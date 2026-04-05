@@ -1,0 +1,27 @@
+{
+  "name": "scanner-worker",
+  "version": "1.0.0",
+  "main": "src/worker.js",
+  "scripts": {
+    "start": "node src/worker.js",
+    "dev":   "node --watch src/worker.js",
+    "test":  "node test-run.js"
+  },
+  "prisma": {
+    "schema": "../../packages/database/prisma/schema.prisma"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "description": "WCAG 2.1 scanner worker — crawls sites with Playwright + axe-core and persists results via BullMQ/Prisma.",
+  "dependencies": {
+    "@axe-core/playwright": "^4.11.1",
+    "@prisma/client":       "6.12.0",
+    "bullmq":               "^5.70.1",
+    "playwright":           "^1.58.2"
+  },
+  "devDependencies": {
+    "prisma": "6.12.0"
+  }
+}
+

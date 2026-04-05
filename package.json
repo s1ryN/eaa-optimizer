@@ -1,0 +1,18 @@
+{
+  "name": "eu-eaa-optimize",
+  "private": true,
+  "license": "MIT",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "scan:test": "node apps/scanner-worker/test-run.js",
+    "scan:test:alza": "node apps/scanner-worker/test-run.js https://alza.cz 200",
+    "security:audit": "npm audit --audit-level=high",
+    "security:audit:all": "npm run security:audit --workspaces --if-present"
+  },
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ]
+}

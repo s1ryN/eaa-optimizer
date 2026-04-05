@@ -1,0 +1,86 @@
+// packages/database/prisma/schema.prisma
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// 1. User
+model User {
+  id        String    @id @default(cuid())
+  email     String    @unique
+  password  String    // V budoucnu zahashované
+  createdAt DateTime  @default(now())
+  projects  Project[]
+}
+
+// 2. Project / scanned site
+model Project {
+  id        String    @id @default(cuid())
+  name      String    // e.g. "My store"
+  url       String    // e.g. "https://www.example.com"
+  widgetKey String    @unique @default(uuid()) // Optional key for external integrations
+  userId    String
+  user      User      @relation(fields: [userId], references: [id])
+  scans     Scan[]
+  createdAt DateTime  @default(now())
+}
+
+// 3. Scan run record
+model Scan {
+  id           String       @id @default(cuid())
+  projectId    String
+  project      Project      @relation(fields: [projectId], references: [id])
+  status       ScanStatus   @default(PENDING)
+  score        Int?         // Accessibility score 0-100
+  pagesScanned Int          @default(0)
+  createdAt    DateTime     @default(now())
+  finishedAt   DateTime?
+  violations   Violation[]
+}
+
+// 4. Individual WCAG violation (one record per failing DOM node)
+model Violation {
+  id             String   @id @default(cuid())
+  scanId         String
+  scan           Scan     @relation(fields: [scanId], references: [id], onDelete: Cascade)
+
+  // Rule identity
+  ruleId         String   // e.g. "image-alt", "color-contrast"
+  wcagRef        String?  // e.g. "1.1.1", "1.4.3"
+  wcagLevel      String?  // "A" or "AA"
+
+  // Severity
+  impact         String   // "critical" | "serious" | "moderate" | "minor"
+  impactOrder    Int      @default(9)  // 1=critical … 4=minor; used for DB ordering
+
+  // Human-readable descriptions
+  description    String   // axe rule description
+  help           String?  // short fix tip (from axe or our KB)
+  helpUrl        String?  // link to Deque docs
+  failureSummary String?  // axe node.failureSummary — "Fix any of: ..."
+
+  // DOM location
+  pageUrl        String?  // which crawled page the element was found on
+  htmlContext    String   // exact failing HTML snippet
+  target         String   // CSS selector path to the element
+
+  // Fix examples from our rules knowledge base
+  badExample     String?
+  goodExample    String?
+
+  // User review (for certificate flow)
+  excluded       Boolean  @default(false)  // user marked as false-positive / intentional
+  excludeReason  String?
+}
+
+enum ScanStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  FAILED
+}
